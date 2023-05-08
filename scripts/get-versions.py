@@ -40,7 +40,9 @@ def get_file_versions(service, folder_id):
             print("No files found.")
         else:
             for file in files:
-                if file["mimeType"].startswith("application/vnd.google-apps"):
+                if file["mimeType"] == "application/vnd.google-apps.folder":
+                    get_file_versions(service, file["id"])
+                elif file["mimeType"].startswith("application/vnd.google-apps"):
                     revision = service.revisions().get(fileId=file["id"], revisionId='head').execute()
                     revision_id = revision['id']
                     print(f"{file['name']}: {revision_id}")
