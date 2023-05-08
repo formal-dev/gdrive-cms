@@ -45,7 +45,11 @@ def get_file_versions(service, folder_id):
                 elif file["mimeType"] in ["application/vnd.google-apps.document", "application/vnd.google-apps.spreadsheet"]:
                     revision = service.revisions().get(fileId=file["id"], revisionId='head').execute()
                     revision_id = revision['id']
-                    path = f"out/versions/{file['id']}.version"
+                    extension = {
+                        'application/vnd.google-apps.document': 'google-docs-version',
+                        'application/vnd.google-apps.spreadsheet': 'google-sheets-version'
+                    }[file['mimeType']]
+                    path = f"out/versions/{file['id']}.{extension}"
                     revision_on_disk = ""
                     if os.path.exists(path):
                         with open(path, 'r') as reader:
