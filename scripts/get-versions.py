@@ -42,12 +42,22 @@ def get_file_versions(service, folder_id):
             for file in files:
                 if file["mimeType"] == "application/vnd.google-apps.folder":
                     get_file_versions(service, file["id"])
-                elif file["mimeType"].startswith("application/vnd.google-apps"):
+                elif file["mimeType"] in ["application/vnd.google-apps.document", "application/vnd.google-apps.spreadsheet"]:
                     revision = service.revisions().get(fileId=file["id"], revisionId='head').execute()
                     revision_id = revision['id']
-                    print(f"{file['name']}: {revision_id}")
+                    path = f"out/versions/{file['id']}"
+                    revision_on_disk = ""
+                    if os.path.exists(path):
+                        with open(path, 'r') as reader:
+                            revision_on_disk = reader.read()
+                    if revision_on_disk != revision_id:
+                        with open(path, 'w') as writer:
+                            writer.write(revision_id)
+                        print(f"Writing {file['id']} ({file['name']} | {file['mimeType']}): {revision_id}")
+                    else:
+                        print(f"Skipping {file['id']} ({file['name']} | {file['mimeType']}) - current version matches")
                 else:
-                    print(f"{file['name']}: {file['version']}")
+                    print(f"Skipping {file['id']} ({file['name']} | {file['mimeType']}) - unsupported mime type")
         
         page_token = results.get('nextPageToken', None)
         if page_token is None:
